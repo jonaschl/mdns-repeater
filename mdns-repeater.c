@@ -1,17 +1,18 @@
 /*
  * mdns-repeater.c - mDNS repeater daemon
  * Copyright (C) 2011 Darell Tan
- * 
+ * Copyright (C) 2016 Jonatan Schlag
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
@@ -36,6 +37,7 @@
 #define PACKAGE "mdns-repeater"
 #define MDNS_ADDR "224.0.0.251"
 #define MDNS_PORT 5353
+#define PROGVERSION "0.2"
 
 #define PIDFILE "/var/run/" PACKAGE ".pid"
 
@@ -217,7 +219,7 @@ static pid_t already_running() {
 	FILE *f;
 	int count;
 	pid_t pid;
-   
+
 	f = fopen(pid_file, "r");
 	if (f != NULL) {
 		count = fscanf(f, "%d", &pid);
@@ -288,7 +290,7 @@ static void daemonize() {
 }
 
 static void show_help(const char *progname) {
-	fprintf(stderr, "mDNS repeater (version " HGVERSION ")\n");
+	fprintf(stderr, "mDNS repeater (version " PROGVERSION " )\n");
 	fprintf(stderr, "Copyright (C) 2011 Darell Tan\n\n");
 
 	fprintf(stderr, "usage: %s [ -f ] <ifdev> ...\n", progname);
@@ -406,7 +408,7 @@ int main(int argc, char *argv[]) {
 			struct sockaddr_in fromaddr;
 			socklen_t sockaddr_size = sizeof(struct sockaddr_in);
 
-			ssize_t recvsize = recvfrom(server_sockfd, pkt_data, PACKET_SIZE, 0, 
+			ssize_t recvsize = recvfrom(server_sockfd, pkt_data, PACKET_SIZE, 0,
 				(struct sockaddr *) &fromaddr, &sockaddr_size);
 			if (recvsize < 0) {
 				log_message(LOG_ERR, "recv(): %m");
@@ -453,13 +455,13 @@ int main(int argc, char *argv[]) {
 
 end_main:
 
-	if (pkt_data != NULL) 
+	if (pkt_data != NULL)
 		free(pkt_data);
 
 	if (server_sockfd >= 0)
 		close(server_sockfd);
 
-	for (i = 0; i < num_socks; i++) 
+	for (i = 0; i < num_socks; i++)
 		close(socks[i].sockfd);
 
 	// remove pid file if it belongs to us
