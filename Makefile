@@ -1,50 +1,23 @@
-# Makefile for mdns-repeater
-
-
-ZIP_NAME = mdns-repeater-$(HGVERSION)
-
-ZIP_FILES = mdns-repeater	\
-			README.txt		\
-			LICENSE.txt
-
-HGVERSION=$(shell hg parents --template "{latesttag}.{latesttagdistance}")
-
-CFLAGS=-Wall
-
-ifdef DEBUG
-CFLAGS+= -g
-else
-CFLAGS+= -Os
+CC = gcc
+CFLAGS = -g -Wall -Os
 LDFLAGS+= -s
-endif
+CHMOD := $(shell which chmod)
 
-CFLAGS+= -DHGVERSION="\"${HGVERSION}\""
-
-.PHONY: all clean
+USER := $(shell whoami)
 
 all: mdns-repeater
 
-mdns-repeater.o: _hgversion
-
 mdns-repeater: mdns-repeater.o
+	$(CC) $(CFLAGS) $^ -o $@
 
-.PHONY: zip
-zip: TMPDIR := $(shell mktemp -d)
-zip: mdns-repeater
-	mkdir $(TMPDIR)/$(ZIP_NAME)
-	cp $(ZIP_FILES) $(TMPDIR)/$(ZIP_NAME)
-	-$(RM) $(CURDIR)/$(ZIP_NAME).zip
-	cd $(TMPDIR) && zip -r $(CURDIR)/$(ZIP_NAME).zip $(ZIP_NAME)
-	-$(RM) -rf $(TMPDIR)
+mdns-repeater.o: mdns-repeater.c
+	$(CC) $(CFLAGS) -c mdns-repeater.c
 
-# version checking rules
-.PHONY: dummy
-_hgversion: dummy
-	@echo $(HGVERSION) | cmp -s $@ - || echo $(HGVERSION) > $@
+
+install:
+	@if [ $(USER) != "root" ]; then echo make install must be run as root.; false; fi
+	$(CHMOD) 755 mdns-repeater
+	mv mdns-repeater /usr/bin/mdns-repeater
 
 clean:
-	-$(RM) *.o
-	-$(RM) _hgversion
-	-$(RM) mdns-repeater
-	-$(RM) mdns-repeater-*.zip
-
+		\/bin/rm -f *.o
